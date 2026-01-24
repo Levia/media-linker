@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TXT to HTML Media Linker - Converti TXT in HTML con Link</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .file-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-list.visible {
+            display: block;
+        }
+
+        .file-item {
+            padding: 8px 0;
+            color: #333;
+            font-size: 14px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item strong {
+            color: #667eea;
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+        }
+
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.5);
+        }
+
+        .process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        .results h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #e0f7fa 0%, #e1f5fe 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #00acc1;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #00acc1;
+            font-size: 20px;
+        }
+
+        .download-btn {
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .preview h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .preview-content {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1565c0;
+            border-left: 5px solid #1976d2;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-left: 5px solid #388e3c;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .lang-btn:hover {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        footer strong {
+            color: #667eea;
+        }
+
+        code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #e91e63;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-toggle">
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+        <button class="lang-btn active" data-lang="it">🇮🇹 Italiano</button>
+    </div>
+
+    <div class="container">
+        <h1>
+            <span>📝➜📄</span>
+            <span data-i18n="title">TXT to HTML Media Linker</span>
+        </h1>
+        <p class="subtitle" data-i18n="subtitle">Converti file TXT in HTML con link ai tuoi file multimediali</p>
+
+        <div class="alert alert-info">
+            <strong data-i18n="whatIsThisTitle">🎯 Cos'è questo strumento?</strong><br>
+            <span data-i18n="whatIsThisText">
+                Questo strumento converte automaticamente i tuoi file di testo (.txt) in HTML, 
+                trovando tutti i riferimenti ai file multimediali e creando link cliccabili. 
+                Perfetto per creare documenti web da semplici file di testo con indici o elenchi di file.
+            </span>
+        </div>
+
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; color: #333;">
+                <span class="step-number">1</span>
+                <span data-i18n="step1">Seleziona File TXT o HTML</span>
+            </h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="textFile" accept=".txt,.html,.htm" />
+                <label class="file-input-label" for="textFile" data-i18n="chooseFile">📄 Scegli File TXT/HTML</label>
+            </div>
+            <div id="fileName" style="margin-top: 10px; color: #666; font-size: 14px;"></div>
+            <div style="margin-top: 8px; color: #666; font-size: 12px;" data-i18n="step1Hint">
+                Accetta file .txt (convertito in HTML) o .html (processato direttamente)
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; color: #333;">
+                <span class="step-number">2</span>
+                <span data-i18n="step2">Seleziona Cartella con File Multimediali</span>
+            </h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="mediaFiles" webkitdirectory directory multiple />
+                <label class="file-input-label" for="mediaFiles" data-i18n="chooseFolder">📁 Scegli Cartella</label>
+            </div>
+            <div id="fileList" class="file-list"></div>
+            <div style="margin-top: 10px; color: #666; font-size: 12px;">
+                💡 <strong data-i18n="tipLabel">Suggerimento:</strong> 
+                <span data-i18n="step2Hint">Seleziona la cartella contenente i tuoi file multimediali. 
+                I percorsi relativi verranno calcolati automaticamente.</span>
+            </div>
+        </div>
+
+        <button id="processBtn" class="process-btn" disabled data-i18n="processBtn">⚡ Converti e Crea Link</button>
+
+        <div id="results" class="results">
+            <div class="alert alert-success">
+                <h2 data-i18n="resultsTitle">✅ Conversione Completata!</h2>
+                <p data-i18n="resultsDesc" style="margin-top: 10px;">
+                    Il tuo file è stato convertito in HTML con link ai file multimediali!
+                </p>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span data-i18n="fileType">Tipo di file elaborato:</span>
+                    <span class="stat-value" id="fileType">TXT</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="mediaFound">File multimediali trovati:</span>
+                    <span class="stat-value" id="mediaCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="linksCreated">Collegamenti creati:</span>
+                    <span class="stat-value" id="linkCount">0</span>
+                </div>
+            </div>
+
+            <button id="downloadBtn" class="download-btn" data-i18n="downloadBtn">⬇️ Scarica HTML</button>
+
+            <div class="preview">
+                <h3 data-i18n="previewTitle">Anteprima HTML generato:</h3>
+                <div class="preview-content" id="previewContent"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 <strong>Leviathans17</strong> - Tutti i diritti riservati / All rights reserved</p>
+        </footer>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                title: "TXT to HTML Media Linker",
+                subtitle: "Convert TXT files to HTML with links to your media files",
+                whatIsThisTitle: "🎯 What is this tool?",
+                whatIsThisText: "This tool automatically converts your text files (.txt) to HTML, finding all references to media files and creating clickable links. Perfect for creating web documents from simple text files with indexes or file lists.",
+                step1: "Select TXT or HTML File",
+                chooseFile: "📄 Choose TXT/HTML File",
+                step1Hint: "Accepts .txt files (converted to HTML) or .html files (processed directly)",
+                step2: "Select Folder with Media Files",
+                chooseFolder: "📁 Choose Folder",
+                tipLabel: "Tip:",
+                step2Hint: "Select the folder containing your media files. Relative paths will be calculated automatically.",
+                processBtn: "⚡ Convert & Create Links",
+                resultsTitle: "✅ Conversion Complete!",
+                resultsDesc: "Your file has been converted to HTML with links to media files!",
+                fileType: "File type processed:",
+                mediaFound: "Media files found:",
+                linksCreated: "Links created:",
+                downloadBtn: "⬇️ Download HTML",
+                previewTitle: "Generated HTML Preview:",
+                selected: "Selected:",
+                filesFound: "media files found:"
+            },
+            it: {
+                title: "TXT to HTML Media Linker",
+                subtitle: "Converti file TXT in HTML con link ai tuoi file multimediali",
+                whatIsThisTitle: "🎯 Cos'è questo strumento?",
+                whatIsThisText: "Questo strumento converte automaticamente i tuoi file di testo (.txt) in HTML, trovando tutti i riferimenti ai file multimediali e creando link cliccabili. Perfetto per creare documenti web da semplici file di testo con indici o elenchi di file.",
+                step1: "Seleziona File TXT o HTML",
+                chooseFile: "📄 Scegli File TXT/HTML",
+                step1Hint: "Accetta file .txt (convertito in HTML) o .html (processato direttamente)",
+                step2: "Seleziona Cartella con File Multimediali",
+                chooseFolder: "📁 Scegli Cartella",
+                tipLabel: "Suggerimento:",
+                step2Hint: "Seleziona la cartella contenente i tuoi file multimediali. I percorsi relativi verranno calcolati automaticamente.",
+                processBtn: "⚡ Converti e Crea Link",
+                resultsTitle: "✅ Conversione Completata!",
+                resultsDesc: "Il tuo file è stato convertito in HTML con link ai file multimediali!",
+                fileType: "Tipo di file elaborato:",
+                mediaFound: "File multimediali trovati:",
+                linksCreated: "Collegamenti creati:",
+                downloadBtn: "⬇️ Scarica HTML",
+                previewTitle: "Anteprima HTML generato:",
+                selected: "Selezionato:",
+                filesFound: "file multimediali trovati:"
+            }
+        };
+
+        let currentLang = 'it';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+            
+            document.documentElement.lang = lang;
+        }
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setLanguage(btn.getAttribute('data-lang'));
+            });
+        });
+
+        // Initialize with Italian
+        setLanguage('it');
+
+        const MEDIA_EXTENSIONS = [
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp',
+            '.mp3', '.wav', '.ogg', '.m4a', '.flac', '.opus',
+            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv',
+            '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'
+        ];
+
+        let textFile = null;
+        let textFilePath = '';
+        let mediaFiles = [];
+        let processedHTML = '';
+        let fileExtension = '';
+
+        // File input handlers
+        document.getElementById('textFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                textFile = file;
+                textFilePath = file.webkitRelativePath || file.name;
+                fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                document.getElementById('fileName').textContent = `${translations[currentLang].selected} ${file.name}`;
+                updateProcessButton();
+            }
+        });
+
+        document.getElementById('mediaFiles').addEventListener('change', (e) => {
+            const allFiles = Array.from(e.target.files);
+            
+            // Filter for media files
+            mediaFiles = allFiles.filter(file => {
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                return MEDIA_EXTENSIONS.includes(ext);
+            });
+            
+            displayMediaFiles();
+            updateProcessButton();
+        });
+
+        function displayMediaFiles() {
+            const fileList = document.getElementById('fileList');
+            if (mediaFiles.length === 0) {
+                fileList.classList.remove('visible');
+                return;
+            }
+
+            fileList.classList.add('visible');
+            fileList.innerHTML = `
+                <div class="file-item"><strong>${mediaFiles.length}</strong> ${translations[currentLang].filesFound}</div>
+                ${mediaFiles.map(f => {
+                    const path = f.webkitRelativePath || f.name;
+                    return `<div class="file-item">📁 ${path}</div>`;
+                }).join('')}
+            `;
+        }
+
+        function updateProcessButton() {
+            const btn = document.getElementById('processBtn');
+            btn.disabled = !(textFile && mediaFiles.length > 0);
+        }
+
+        // Process button handler
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            try {
+                await processFiles();
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error(error);
+            }
+        });
+
+        async function processFiles() {
+            let content = await readFileAsText(textFile);
+            
+            // Convert TXT to HTML if needed
+            if (fileExtension === '.txt') {
+                content = convertTxtToHtml(content, textFile.name);
+                document.getElementById('fileType').textContent = 'TXT → HTML';
+            } else {
+                document.getElementById('fileType').textContent = 'HTML';
+            }
+            
+            // Parse HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(content, 'text/html');
+            
+            // Build media file map with relative paths
+            const mediaFileMap = new Map();
+            const textFileDir = getDirectory(textFilePath);
+            
+            // Determine the base folder name from the first file
+            let baseFolderName = '';
+            if (mediaFiles.length > 0 && mediaFiles[0].webkitRelativePath) {
+                const firstPath = mediaFiles[0].webkitRelativePath;
+                baseFolderName = firstPath.split('/')[0];
+            }
+            
+            mediaFiles.forEach(file => {
+                let filePath = file.webkitRelativePath || file.name;
+                const fileName = file.name;
+                
+                // Remove the base folder name from the relative path if present
+                if (baseFolderName && filePath.startsWith(baseFolderName + '/')) {
+                    filePath = filePath.substring(baseFolderName.length + 1);
+                }
+                
+                // Calculate relative path from text file to media file
+                const relativePath = calculateRelativePath(textFileDir, filePath);
+                
+                console.log(`Mapping "${fileName}" to path "${relativePath}"`);
+                mediaFileMap.set(fileName, relativePath);
+            });
+
+            console.log('Text file directory:', textFileDir);
+            console.log('Media files map:', Array.from(mediaFileMap.entries()));
+
+            // Process the document
+            let linkCount = replaceTextWithLinks(doc, mediaFileMap);
+
+            // Serialize back to HTML
+            processedHTML = new XMLSerializer().serializeToString(doc);
+            
+            // If it was originally TXT or HTML5, add proper doctype
+            if (fileExtension === '.txt' || content.toLowerCase().includes('<!doctype html>')) {
+                processedHTML = '<!DOCTYPE html>\n' + processedHTML;
+            }
+
+            // Show results
+            document.getElementById('mediaCount').textContent = mediaFileMap.size;
+            document.getElementById('linkCount').textContent = linkCount;
+            document.getElementById('previewContent').textContent = processedHTML.substring(0, 1000) + '...';
+            document.getElementById('results').classList.add('visible');
+        }
+
+        function convertTxtToHtml(txtContent, fileName) {
+            // Escape HTML special characters
+            const escapeHtml = (text) => {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            };
+
+            // Split into lines
+            const lines = txtContent.split('\n');
+            
+            // Build HTML
+            let htmlBody = '';
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (line === '') {
+                    htmlBody += '<br>\n';
+                } else {
+                    // Preserve the line as paragraph
+                    htmlBody += `<p>${escapeHtml(line)}</p>\n`;
+                }
+            }
+
+            // Create full HTML document
+            const html = `<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${escapeHtml(fileName.replace('.txt', ''))}</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            line-height: 1.6;
+            color: #333;
+        }
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        p {
+            margin: 10px 0;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 2px solid #667eea;
+            transition: all 0.3s;
+        }
+        a:hover {
+            background: #f0f0ff;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>${escapeHtml(fileName.replace('.txt', ''))}</h1>
+    ${htmlBody}
+</body>
+</html>`;
+
+            return html;
+        }
+
+        function getDirectory(path) {
+            const lastSlash = Math.max(path.lastIndexOf('/'), path.lastIndexOf('\\'));
+            if (lastSlash === -1) return '';
+            return path.substring(0, lastSlash);
+        }
+
+        function calculateRelativePath(fromDir, toPath) {
+            // If no webkitRelativePath available, just use filename
+            if (!toPath.includes('/') && !toPath.includes('\\')) {
+                return toPath;
+            }
+
+            // Normalize path separators
+            fromDir = fromDir.replace(/\\/g, '/');
+            toPath = toPath.replace(/\\/g, '/');
+
+            // Split paths into parts
+            const fromParts = fromDir ? fromDir.split('/').filter(p => p) : [];
+            const toParts = toPath.split('/').filter(p => p);
+
+            // Find common base
+            let commonLength = 0;
+            const minLength = Math.min(fromParts.length, toParts.length - 1);
+            for (let i = 0; i < minLength; i++) {
+                if (fromParts[i] === toParts[i]) {
+                    commonLength++;
+                } else {
+                    break;
+                }
+            }
+
+            // Build relative path
+            const upLevels = fromParts.length - commonLength;
+            const downPath = toParts.slice(commonLength).join('/');
+
+            if (upLevels === 0) {
+                // Same directory or subdirectory
+                return downPath || toParts[toParts.length - 1];
+            } else {
+                // Need to go up directories
+                const upPath = '../'.repeat(upLevels);
+                return upPath + downPath;
+            }
+        }
+
+        function replaceTextWithLinks(doc, mediaFileMap) {
+            let linkCount = 0;
+            const sortedFiles = Array.from(mediaFileMap.keys()).sort((a, b) => b.length - a.length);
+
+            // Walk through all text nodes
+            const walker = doc.createTreeWalker(
+                doc.body || doc.documentElement,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        // Skip if parent is already a link, script, or style
+                        const parentName = node.parentNode.nodeName.toLowerCase();
+                        if (parentName === 'a' || parentName === 'script' || parentName === 'style') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+
+            // Process each text node
+            textNodes.forEach(textNode => {
+                let text = textNode.textContent;
+                let modified = false;
+                let replacements = [];
+
+                // Find all matches in this text node
+                for (const filename of sortedFiles) {
+                    const ext = filename.substring(filename.lastIndexOf('.'));
+                    const basenameNoExt = filename.substring(0, filename.lastIndexOf('.'));
+                    
+                    // Create regex that matches either full filename or basename
+                    const escapedFilename = escapeRegExp(filename);
+                    const escapedBasename = escapeRegExp(basenameNoExt);
+                    const regex = new RegExp(`\\b(${escapedFilename}|${escapedBasename})\\b`, 'g');
+                    
+                    let match;
+                    while ((match = regex.exec(text)) !== null) {
+                        replacements.push({
+                            start: match.index,
+                            end: match.index + match[0].length,
+                            matchText: match[0],
+                            filename: filename,
+                            href: mediaFileMap.get(filename)
+                        });
+                        modified = true;
+                    }
+                }
+
+                if (!modified) return;
+
+                // Sort replacements by position (reverse order for easier replacement)
+                replacements.sort((a, b) => b.start - a.start);
+
+                // Remove overlapping matches (keep the first/longest one)
+                const filteredReplacements = [];
+                for (const replacement of replacements) {
+                    const overlaps = filteredReplacements.some(r => 
+                        (replacement.start >= r.start && replacement.start < r.end) ||
+                        (replacement.end > r.start && replacement.end <= r.end)
+                    );
+                    if (!overlaps) {
+                        filteredReplacements.push(replacement);
+                    }
+                }
+
+                // Build new content with links
+                const fragment = doc.createDocumentFragment();
+                let lastIndex = 0;
+                
+                // Re-sort in forward order for building
+                filteredReplacements.sort((a, b) => a.start - b.start);
+                
+                filteredReplacements.forEach(replacement => {
+                    // Add text before the match
+                    if (replacement.start > lastIndex) {
+                        fragment.appendChild(
+                            doc.createTextNode(text.substring(lastIndex, replacement.start))
+                        );
+                    }
+                    
+                    // Add the link
+                    const link = doc.createElement('a');
+                    link.href = replacement.href;
+                    link.textContent = replacement.matchText;
+                    fragment.appendChild(link);
+                    linkCount++;
+                    
+                    lastIndex = replacement.end;
+                });
+                
+                // Add remaining text
+                if (lastIndex < text.length) {
+                    fragment.appendChild(doc.createTextNode(text.substring(lastIndex)));
+                }
+                
+                // Replace the text node with the fragment
+                textNode.parentNode.replaceChild(fragment, textNode);
+            });
+
+            return linkCount;
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        // Download button handler
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const blob = new Blob([processedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const originalName = textFile.name.replace(/\.(txt|html|htm)$/i, '');
+            a.download = originalName + '_linked.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

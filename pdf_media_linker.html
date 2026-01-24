@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Media Linker - Crea PDF con Link Multimediali</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 1000px;
+            width: 100%;
+            padding: 40px;
+            position: relative;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .upload-section {
+            margin-bottom: 30px;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .file-input-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .file-list {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .file-list.visible {
+            display: block;
+        }
+
+        .file-item {
+            padding: 8px 0;
+            color: #333;
+            font-size: 14px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .file-item strong {
+            color: #f5576c;
+        }
+
+        .process-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .process-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .process-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.visible {
+            display: block;
+        }
+
+        .results h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #e0f7fa 0%, #e1f5fe 100%);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #00acc1;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #00acc1;
+            font-size: 20px;
+        }
+
+        .download-btn, .pdf-btn {
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .pdf-btn {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }
+
+        .pdf-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+        }
+
+        .preview h3 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .preview-content {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1565c0;
+            border-left: 5px solid #1976d2;
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            color: #2e7d32;
+            border-left: 5px solid #388e3c;
+        }
+
+        .alert-warning {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            color: #e65100;
+            border-left: 5px solid #f57c00;
+        }
+
+        .lang-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            background: white;
+            padding: 8px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .lang-btn:hover {
+            border-color: #f5576c;
+            background: #fff0f3;
+        }
+
+        .lang-btn.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-color: #f5576c;
+        }
+
+        .path-input-section {
+            background: linear-gradient(135deg, #fff9c4 0%, #fff59d 100%);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #fbc02d;
+        }
+
+        .path-input-section h3 {
+            color: #f57f17;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .path-input-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: stretch;
+        }
+
+        .path-input-wrapper input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #fbc02d;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        .detect-btn {
+            padding: 12px 24px;
+            background: #fbc02d;
+            color: #333;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .detect-btn:hover {
+            background: #f9a825;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        footer strong {
+            color: #f5576c;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .instructions {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+        }
+
+        code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            color: #e91e63;
+        }
+    </style>
+</head>
+<body>
+    <div class="lang-toggle">
+        <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+        <button class="lang-btn active" data-lang="it">🇮🇹 Italiano</button>
+    </div>
+
+    <div class="container">
+        <h1>
+            <span>📄➜📎</span>
+            <span data-i18n="title">PDF Media Linker</span>
+        </h1>
+        <p class="subtitle" data-i18n="subtitle">Crea PDF con link cliccabili ai tuoi file multimediali</p>
+
+        <div class="alert alert-info">
+            <strong data-i18n="whatIsThisTitle">🎯 Cos'è questo strumento?</strong><br>
+            <span data-i18n="whatIsThisText">
+                Questo strumento ti permette di creare PDF dove puoi cliccare sul nome di un file (es. "video.mp4") 
+                e il file si apre automaticamente sul tuo computer. Perfetto per creare indici, cataloghi o documenti 
+                di riferimento con accesso diretto ai tuoi file multimediali.
+            </span>
+        </div>
+
+        <div class="instructions">
+            <strong data-i18n="howToUseTitle" style="font-size: 16px; color: #333;">📋 Come usarlo:</strong>
+            <ol data-i18n-list="howToUseSteps">
+                <li>Seleziona la cartella con i tuoi file HTML e multimediali</li>
+                <li>Inserisci il percorso completo della cartella sul tuo computer</li>
+                <li>Clicca "Elabora HTML" - i link verranno creati con percorsi assoluti</li>
+                <li>Scarica l'HTML modificato</li>
+                <li>Converti l'HTML in PDF (usando il browser o un tool dedicato)</li>
+                <li>Apri il PDF e clicca sui link - i file si apriranno! 🎉</li>
+            </ol>
+        </div>
+
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; color: #333;">
+                <span class="step-number">1</span>
+                <span data-i18n="step1">Seleziona File HTML (Opzionale)</span>
+            </h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="htmlFile" accept=".html,.htm" />
+                <label class="file-input-label" for="htmlFile" data-i18n="chooseHtml">📄 Scegli File HTML</label>
+            </div>
+            <div id="htmlFileName" style="margin-top: 10px; color: #666; font-size: 14px;"></div>
+            <div style="margin-top: 8px; color: #666; font-size: 12px;" data-i18n="step1Hint">
+                Oppure salta questo e seleziona una cartella sotto - il file HTML verrà rilevato automaticamente
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <h3 style="margin-bottom: 15px; color: #333;">
+                <span class="step-number">2</span>
+                <span data-i18n="step2">Seleziona Cartella con File Multimediali</span>
+            </h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="mediaFiles" webkitdirectory directory multiple />
+                <label class="file-input-label" for="mediaFiles" data-i18n="chooseFolder">📁 Scegli Cartella</label>
+            </div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <div class="path-input-section">
+            <h3>
+                <span class="step-number">3</span>
+                <span data-i18n="step3">Percorso Assoluto della Cartella</span>
+            </h3>
+            <p style="margin-bottom: 15px; color: #666; font-size: 14px;" data-i18n="step3Desc">
+                Inserisci il percorso completo della cartella sul tuo computer. Questo è essenziale per far funzionare i link nel PDF.
+            </p>
+            <div class="path-input-wrapper">
+                <input type="text" id="baseFolderPath" 
+                    placeholder="/Users/tuonome/Documents/mio-progetto" 
+                    data-i18n-placeholder="pathPlaceholder" />
+                <button id="detectPathBtn" class="detect-btn" data-i18n="detectBtn">🔍 Aiuto</button>
+            </div>
+            <div style="margin-top: 12px; font-size: 13px; color: #666;">
+                <strong data-i18n="examplesTitle">Esempi:</strong><br>
+                <span data-i18n="exampleMac">Mac/Linux:</span> <code>/Users/ferdinando/Documents/progetto</code><br>
+                <span data-i18n="exampleWin">Windows:</span> <code>C:/Users/ferdinando/Documents/progetto</code>
+            </div>
+        </div>
+
+        <button id="processBtn" class="process-btn" disabled data-i18n="processBtn">⚡ Elabora HTML per PDF</button>
+
+        <div id="results" class="results">
+            <div class="alert alert-success">
+                <h2 data-i18n="resultsTitle">✅ Elaborazione Completata!</h2>
+                <p data-i18n="resultsDesc" style="margin-top: 10px;">
+                    L'HTML è stato modificato con link assoluti. Scaricalo e convertilo in PDF!
+                </p>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span data-i18n="mediaFound">File multimediali trovati:</span>
+                    <span class="stat-value" id="mediaCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span data-i18n="linksCreated">Collegamenti creati:</span>
+                    <span class="stat-value" id="linkCount">0</span>
+                </div>
+            </div>
+
+            <button id="downloadBtn" class="download-btn" data-i18n="downloadBtn">⬇️ Scarica HTML Modificato</button>
+            <button id="pdfBtn" class="pdf-btn" data-i18n="pdfBtn">🖨️ Stampa/Converti in PDF</button>
+
+            <div class="alert alert-warning" style="margin-top: 20px;">
+                <strong data-i18n="nextStepsTitle">📌 Prossimi Passi:</strong><br>
+                <ol style="margin: 10px 0 0 20px;" data-i18n-list="nextSteps">
+                    <li>Scarica l'HTML modificato usando il bottone sopra</li>
+                    <li>Apri l'HTML nel browser (Chrome, Firefox, Safari, ecc.)</li>
+                    <li>Vai su "Stampa" (Ctrl+P o Cmd+P)</li>
+                    <li>Seleziona "Salva come PDF" come destinazione</li>
+                    <li>Salva il PDF nella stessa cartella dei tuoi file</li>
+                    <li>Apri il PDF - i link funzioneranno! 🎉</li>
+                </ol>
+            </div>
+
+            <div class="preview">
+                <h3 data-i18n="previewTitle">Anteprima (primi 500 caratteri):</h3>
+                <div class="preview-content" id="previewContent"></div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© 2026 <strong>Leviathans17</strong> - Tutti i diritti riservati / All rights reserved</p>
+        </footer>
+    </div>
+
+    <script>
+        // Translations
+        const translations = {
+            en: {
+                title: "PDF Media Linker",
+                subtitle: "Create PDFs with clickable links to your media files",
+                whatIsThisTitle: "🎯 What is this tool?",
+                whatIsThisText: "This tool allows you to create PDFs where you can click on a file name (e.g., 'video.mp4') and the file opens automatically on your computer. Perfect for creating indexes, catalogs, or reference documents with direct access to your media files.",
+                howToUseTitle: "📋 How to use it:",
+                howToUseSteps: [
+                    "Select the folder with your HTML and media files",
+                    "Enter the full path of the folder on your computer",
+                    "Click 'Process HTML' - links will be created with absolute paths",
+                    "Download the modified HTML",
+                    "Convert HTML to PDF (using browser or dedicated tool)",
+                    "Open the PDF and click on the links - files will open! 🎉"
+                ],
+                step1: "Select HTML File (Optional)",
+                chooseHtml: "📄 Choose HTML File",
+                step1Hint: "Or skip this and select a folder below - the HTML file will be auto-detected",
+                step2: "Select Folder with Media Files",
+                chooseFolder: "📁 Choose Folder",
+                step3: "Absolute Folder Path",
+                step3Desc: "Enter the full path of the folder on your computer. This is essential to make links work in the PDF.",
+                pathPlaceholder: "/Users/yourname/Documents/my-project",
+                detectBtn: "🔍 Help",
+                examplesTitle: "Examples:",
+                exampleMac: "Mac/Linux:",
+                exampleWin: "Windows:",
+                processBtn: "⚡ Process HTML for PDF",
+                resultsTitle: "✅ Processing Complete!",
+                resultsDesc: "The HTML has been modified with absolute links. Download it and convert to PDF!",
+                mediaFound: "Media files found:",
+                linksCreated: "Links created:",
+                downloadBtn: "⬇️ Download Modified HTML",
+                pdfBtn: "🖨️ Print/Convert to PDF",
+                nextStepsTitle: "📌 Next Steps:",
+                nextSteps: [
+                    "Download the modified HTML using the button above",
+                    "Open the HTML in your browser (Chrome, Firefox, Safari, etc.)",
+                    "Go to 'Print' (Ctrl+P or Cmd+P)",
+                    "Select 'Save as PDF' as destination",
+                    "Save the PDF in the same folder as your files",
+                    "Open the PDF - the links will work! 🎉"
+                ],
+                previewTitle: "Preview (first 500 characters):",
+                selected: "Selected:",
+                autoSelected: "Auto-selected:",
+                filesFound: "media files found:",
+                pathHelpTitle: "How to find your folder path:",
+                pathHelpMac: "On Mac/Linux:\n1. Open Terminal\n2. Navigate to your folder (cd /path/to/folder)\n3. Type: pwd\n4. Copy the result",
+                pathHelpWin: "On Windows:\n1. Open the folder in File Explorer\n2. Click on the address bar\n3. Copy the path\n4. Replace \\ with /"
+            },
+            it: {
+                title: "PDF Media Linker",
+                subtitle: "Crea PDF con link cliccabili ai tuoi file multimediali",
+                whatIsThisTitle: "🎯 Cos'è questo strumento?",
+                whatIsThisText: "Questo strumento ti permette di creare PDF dove puoi cliccare sul nome di un file (es. 'video.mp4') e il file si apre automaticamente sul tuo computer. Perfetto per creare indici, cataloghi o documenti di riferimento con accesso diretto ai tuoi file multimediali.",
+                howToUseTitle: "📋 Come usarlo:",
+                howToUseSteps: [
+                    "Seleziona la cartella con i tuoi file HTML e multimediali",
+                    "Inserisci il percorso completo della cartella sul tuo computer",
+                    "Clicca 'Elabora HTML' - i link verranno creati con percorsi assoluti",
+                    "Scarica l'HTML modificato",
+                    "Converti l'HTML in PDF (usando il browser o un tool dedicato)",
+                    "Apri il PDF e clicca sui link - i file si apriranno! 🎉"
+                ],
+                step1: "Seleziona File HTML (Opzionale)",
+                chooseHtml: "📄 Scegli File HTML",
+                step1Hint: "Oppure salta questo e seleziona una cartella sotto - il file HTML verrà rilevato automaticamente",
+                step2: "Seleziona Cartella con File Multimediali",
+                chooseFolder: "📁 Scegli Cartella",
+                step3: "Percorso Assoluto della Cartella",
+                step3Desc: "Inserisci il percorso completo della cartella sul tuo computer. Questo è essenziale per far funzionare i link nel PDF.",
+                pathPlaceholder: "/Users/tuonome/Documents/mio-progetto",
+                detectBtn: "🔍 Aiuto",
+                examplesTitle: "Esempi:",
+                exampleMac: "Mac/Linux:",
+                exampleWin: "Windows:",
+                processBtn: "⚡ Elabora HTML per PDF",
+                resultsTitle: "✅ Elaborazione Completata!",
+                resultsDesc: "L'HTML è stato modificato con link assoluti. Scaricalo e convertilo in PDF!",
+                mediaFound: "File multimediali trovati:",
+                linksCreated: "Collegamenti creati:",
+                downloadBtn: "⬇️ Scarica HTML Modificato",
+                pdfBtn: "🖨️ Stampa/Converti in PDF",
+                nextStepsTitle: "📌 Prossimi Passi:",
+                nextSteps: [
+                    "Scarica l'HTML modificato usando il bottone sopra",
+                    "Apri l'HTML nel browser (Chrome, Firefox, Safari, ecc.)",
+                    "Vai su 'Stampa' (Ctrl+P o Cmd+P)",
+                    "Seleziona 'Salva come PDF' come destinazione",
+                    "Salva il PDF nella stessa cartella dei tuoi file",
+                    "Apri il PDF - i link funzioneranno! 🎉"
+                ],
+                previewTitle: "Anteprima (primi 500 caratteri):",
+                selected: "Selezionato:",
+                autoSelected: "Auto-selezionato:",
+                filesFound: "file multimediali trovati:",
+                pathHelpTitle: "Come trovare il percorso della cartella:",
+                pathHelpMac: "Su Mac/Linux:\n1. Apri il Terminale\n2. Vai alla tua cartella (cd /percorso/alla/cartella)\n3. Digita: pwd\n4. Copia il risultato",
+                pathHelpWin: "Su Windows:\n1. Apri la cartella in Esplora File\n2. Clicca sulla barra degli indirizzi\n3. Copia il percorso\n4. Sostituisci \\ con /"
+            }
+        };
+
+        let currentLang = 'it';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    element.innerHTML = translations[lang][key];
+                }
+            });
+
+            // Handle lists
+            document.querySelectorAll('[data-i18n-list]').forEach(element => {
+                const key = element.getAttribute('data-i18n-list');
+                if (translations[lang][key] && Array.isArray(translations[lang][key])) {
+                    element.innerHTML = translations[lang][key].map(item => `<li>${item}</li>`).join('');
+                }
+            });
+
+            // Handle placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                if (translations[lang][key]) {
+                    element.placeholder = translations[lang][key];
+                }
+            });
+            
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+            
+            document.documentElement.lang = lang;
+        }
+
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setLanguage(btn.getAttribute('data-lang'));
+            });
+        });
+
+        setLanguage('it');
+
+        const MEDIA_EXTENSIONS = [
+            '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp',
+            '.mp3', '.wav', '.ogg', '.m4a', '.flac',
+            '.mp4', '.avi', '.mov', '.wmv', '.flv', '.webm', '.mkv',
+            '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'
+        ];
+
+        let htmlFile = null;
+        let htmlFilePath = '';
+        let mediaFiles = [];
+        let processedHTML = '';
+
+        // Detect path button
+        document.getElementById('detectPathBtn').addEventListener('click', () => {
+            const pathInput = document.getElementById('baseFolderPath');
+            const helpText = currentLang === 'it' ? translations.it.pathHelpMac + '\n\n' + translations.it.pathHelpWin 
+                                                   : translations.en.pathHelpMac + '\n\n' + translations.en.pathHelpWin;
+            
+            const detectedPath = prompt(
+                (currentLang === 'it' ? translations.it.pathHelpTitle : translations.en.pathHelpTitle) + '\n\n' + helpText,
+                pathInput.value || ''
+            );
+            
+            if (detectedPath) {
+                let normalized = detectedPath.trim().replace(/\\/g, '/');
+                if (normalized.endsWith('/')) {
+                    normalized = normalized.slice(0, -1);
+                }
+                pathInput.value = normalized;
+            }
+        });
+
+        document.getElementById('htmlFile').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                htmlFile = file;
+                htmlFilePath = file.webkitRelativePath || file.name;
+                document.getElementById('htmlFileName').textContent = `${translations[currentLang].selected} ${htmlFilePath}`;
+                updateProcessButton();
+            }
+        });
+
+        document.getElementById('mediaFiles').addEventListener('change', (e) => {
+            const allFiles = Array.from(e.target.files);
+            
+            mediaFiles = allFiles.filter(file => {
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                return MEDIA_EXTENSIONS.includes(ext);
+            });
+            
+            const htmlFiles = allFiles.filter(file => {
+                const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+                return ext === '.html' || ext === '.htm';
+            });
+            
+            if (htmlFiles.length > 0 && !htmlFile) {
+                htmlFile = htmlFiles[0];
+                htmlFilePath = htmlFile.webkitRelativePath || htmlFile.name;
+                document.getElementById('htmlFileName').textContent = `${translations[currentLang].autoSelected} ${htmlFilePath}`;
+            }
+            
+            displayMediaFiles();
+            updateProcessButton();
+        });
+
+        function displayMediaFiles() {
+            const fileList = document.getElementById('fileList');
+            if (mediaFiles.length === 0) {
+                fileList.classList.remove('visible');
+                return;
+            }
+
+            fileList.classList.add('visible');
+            fileList.innerHTML = `
+                <div class="file-item"><strong>${mediaFiles.length}</strong> ${translations[currentLang].filesFound}</div>
+                ${mediaFiles.map(f => {
+                    const path = f.webkitRelativePath || f.name;
+                    return `<div class="file-item">📁 ${path}</div>`;
+                }).join('')}
+            `;
+        }
+
+        function updateProcessButton() {
+            const btn = document.getElementById('processBtn');
+            btn.disabled = !(htmlFile && mediaFiles.length > 0);
+        }
+
+        document.getElementById('processBtn').addEventListener('click', async () => {
+            try {
+                await processFiles();
+            } catch (error) {
+                alert('Error: ' + error.message);
+                console.error(error);
+            }
+        });
+
+        async function processFiles() {
+            const baseFolderPath = document.getElementById('baseFolderPath').value.trim();
+            
+            if (!baseFolderPath) {
+                alert(currentLang === 'it' 
+                    ? 'Per favore inserisci il percorso assoluto della cartella!' 
+                    : 'Please enter the absolute folder path!');
+                return;
+            }
+
+            const htmlContent = await readFileAsText(htmlFile);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            
+            const mediaFileMap = new Map();
+            let normalizedBase = baseFolderPath.replace(/\\/g, '/');
+            if (!normalizedBase.endsWith('/')) {
+                normalizedBase += '/';
+            }
+            
+            // Determine the base folder name from the first file
+            let baseFolderName = '';
+            if (mediaFiles.length > 0 && mediaFiles[0].webkitRelativePath) {
+                const firstPath = mediaFiles[0].webkitRelativePath;
+                baseFolderName = firstPath.split('/')[0];
+            }
+            
+            mediaFiles.forEach(file => {
+                let filePath = file.webkitRelativePath || file.name;
+                const fileName = file.name;
+                
+                // Remove the base folder name from the relative path if present
+                // webkitRelativePath includes: "medialinker/subfolder/file.jpg"
+                // We only want: "subfolder/file.jpg"
+                if (baseFolderName && filePath.startsWith(baseFolderName + '/')) {
+                    filePath = filePath.substring(baseFolderName.length + 1);
+                }
+                
+                const absolutePath = 'file://' + normalizedBase + filePath;
+                
+                console.log(`Mapping "${fileName}" to "${absolutePath}"`);
+                mediaFileMap.set(fileName, absolutePath);
+            });
+
+            let linkCount = replaceTextWithLinks(doc, mediaFileMap);
+
+            processedHTML = new XMLSerializer().serializeToString(doc);
+            if (htmlContent.toLowerCase().includes('<!doctype html>')) {
+                processedHTML = '<!DOCTYPE html>\n' + processedHTML;
+            }
+
+            document.getElementById('mediaCount').textContent = mediaFileMap.size;
+            document.getElementById('linkCount').textContent = linkCount;
+            document.getElementById('previewContent').textContent = processedHTML.substring(0, 500) + '...';
+            document.getElementById('results').classList.add('visible');
+        }
+
+        function replaceTextWithLinks(doc, mediaFileMap) {
+            let linkCount = 0;
+            const sortedFiles = Array.from(mediaFileMap.keys()).sort((a, b) => b.length - a.length);
+
+            const walker = doc.createTreeWalker(
+                doc.body || doc.documentElement,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        const parentName = node.parentNode.nodeName.toLowerCase();
+                        if (parentName === 'a' || parentName === 'script' || parentName === 'style') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                }
+            );
+
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+
+            textNodes.forEach(textNode => {
+                let text = textNode.textContent;
+                let modified = false;
+                let replacements = [];
+
+                for (const filename of sortedFiles) {
+                    const ext = filename.substring(filename.lastIndexOf('.'));
+                    const basenameNoExt = filename.substring(0, filename.lastIndexOf('.'));
+                    
+                    const escapedFilename = escapeRegExp(filename);
+                    const escapedBasename = escapeRegExp(basenameNoExt);
+                    const regex = new RegExp(`\\b(${escapedFilename}|${escapedBasename})\\b`, 'g');
+                    
+                    let match;
+                    while ((match = regex.exec(text)) !== null) {
+                        replacements.push({
+                            start: match.index,
+                            end: match.index + match[0].length,
+                            matchText: match[0],
+                            filename: filename,
+                            href: mediaFileMap.get(filename)
+                        });
+                        modified = true;
+                    }
+                }
+
+                if (!modified) return;
+
+                replacements.sort((a, b) => b.start - a.start);
+
+                const filteredReplacements = [];
+                for (const replacement of replacements) {
+                    const overlaps = filteredReplacements.some(r => 
+                        (replacement.start >= r.start && replacement.start < r.end) ||
+                        (replacement.end > r.start && replacement.end <= r.end)
+                    );
+                    if (!overlaps) {
+                        filteredReplacements.push(replacement);
+                    }
+                }
+
+                const fragment = doc.createDocumentFragment();
+                let lastIndex = 0;
+                
+                filteredReplacements.sort((a, b) => a.start - b.start);
+                
+                filteredReplacements.forEach(replacement => {
+                    if (replacement.start > lastIndex) {
+                        fragment.appendChild(
+                            doc.createTextNode(text.substring(lastIndex, replacement.start))
+                        );
+                    }
+                    
+                    const link = doc.createElement('a');
+                    link.href = replacement.href;
+                    link.textContent = replacement.matchText;
+                    fragment.appendChild(link);
+                    linkCount++;
+                    
+                    lastIndex = replacement.end;
+                });
+                
+                if (lastIndex < text.length) {
+                    fragment.appendChild(doc.createTextNode(text.substring(lastIndex)));
+                }
+                
+                textNode.parentNode.replaceChild(fragment, textNode);
+            });
+
+            return linkCount;
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(e);
+                reader.readAsText(file);
+            });
+        }
+
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const blob = new Blob([processedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = htmlFile.name.replace('.html', '_for_pdf.html');
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        document.getElementById('pdfBtn').addEventListener('click', () => {
+            const blob = new Blob([processedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const newWindow = window.open(url, '_blank');
+            
+            setTimeout(() => {
+                if (newWindow) {
+                    newWindow.print();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
