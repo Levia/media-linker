@@ -2,8 +2,25 @@
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>TXT to HTML Media Linker - Converti TXT in HTML con Link</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Convert TXT files to HTML with links to your media files. Works 100% offline - all processing happens on your device. No internet required.">
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Media Linker">
+    
+    <!-- Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- iOS Icons -->
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+
     <style>
         * {
             margin: 0;
@@ -19,6 +36,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            /* iOS safe area support */
+            padding-top: max(20px, env(safe-area-inset-top));
+            padding-bottom: max(20px, env(safe-area-inset-bottom));
+            padding-left: max(20px, env(safe-area-inset-left));
+            padding-right: max(20px, env(safe-area-inset-right));
         }
 
         .container {
@@ -75,6 +97,14 @@
             transition: all 0.3s;
             font-weight: 600;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            /* Better touch targets for mobile */
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .file-input-label:hover {
@@ -124,6 +154,10 @@
             width: 100%;
             margin-top: 20px;
             box-shadow: 0 4px 15px rgba(17, 153, 142, 0.4);
+            /* Better touch targets */
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .process-btn:hover:not(:disabled) {
@@ -187,6 +221,9 @@
             margin-bottom: 15px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            min-height: 44px;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         .download-btn:hover {
@@ -307,9 +344,181 @@
             font-family: monospace;
             color: #e91e63;
         }
+
+        /* PWA Install Button */
+        .install-container {
+            position: fixed;
+            bottom: 20px;
+            bottom: max(20px, env(safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: none;
+        }
+
+        .install-container.visible {
+            display: block;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateX(-50%) translateY(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .install-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .install-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(245, 87, 108, 0.5);
+        }
+
+        .install-close {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+
+        .install-close:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Offline notification */
+        .offline-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .offline-notification .icon {
+            font-size: 16px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateX(-50%) translateY(-100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(-50%) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive improvements for mobile */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+
+            .lang-toggle {
+                position: relative;
+                top: 0;
+                right: 0;
+                margin-bottom: 20px;
+                justify-content: center;
+            }
+
+            .install-container {
+                left: 20px;
+                right: 20px;
+                transform: none;
+                width: auto;
+            }
+
+            .install-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .offline-notification {
+                font-size: 11px;
+                padding: 8px 16px;
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                transform: none;
+                max-width: calc(100% - 20px);
+            }
+
+            .offline-notification .icon {
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- PWA Install Prompt -->
+    <div id="installContainer" class="install-container">
+        <button id="installBtn" class="install-btn">
+            <span>📱</span>
+            <span data-i18n="installApp">Installa App</span>
+            <button class="install-close" id="installClose">✕</button>
+        </button>
+    </div>
+
+    <!-- Offline/Privacy Badge -->
+    <div id="offlineNotification" class="offline-notification">
+        <span class="icon">🔒</span>
+        <span data-i18n="offlineMode">Nessuna connessione necessaria - App funziona offline</span>
+    </div>
+
     <div class="lang-toggle">
         <button class="lang-btn" data-lang="en">🇬🇧 English</button>
         <button class="lang-btn active" data-lang="it">🇮🇹 Italiano</button>
@@ -408,7 +617,7 @@
                 title: "TXT to HTML Media Linker",
                 subtitle: "Convert TXT files to HTML with links to your media files",
                 whatIsThisTitle: "🎯 What is this tool?",
-                whatIsThisText: "This tool automatically converts your text files (.txt) to HTML, finding all references to media files and creating clickable links. Perfect for creating web documents from simple text files with indexes or file lists.",
+                whatIsThisText: "This tool automatically converts your text files (.txt) to HTML, finding all references to media files and creating clickable links. <strong>Works 100% offline</strong> - all processing happens locally on your device. No data ever leaves your computer. Perfect for creating web documents from simple text files with indexes or file lists.",
                 step1: "Select TXT or HTML File",
                 chooseFile: "📄 Choose TXT/HTML File",
                 step1Hint: "Accepts .txt files (converted to HTML) or .html files (processed directly)",
@@ -425,13 +634,17 @@
                 downloadBtn: "⬇️ Download HTML",
                 previewTitle: "Generated HTML Preview:",
                 selected: "Selected:",
-                filesFound: "media files found:"
+                filesFound: "media files found:",
+                installApp: "Install App",
+                offlineMode: "No internet needed - App works offline",
+                installSuccess: "App installed successfully!",
+                installError: "Installation failed"
             },
             it: {
                 title: "TXT to HTML Media Linker",
                 subtitle: "Converti file TXT in HTML con link ai tuoi file multimediali",
                 whatIsThisTitle: "🎯 Cos'è questo strumento?",
-                whatIsThisText: "Questo strumento converte automaticamente i tuoi file di testo (.txt) in HTML, trovando tutti i riferimenti ai file multimediali e creando link cliccabili. Perfetto per creare documenti web da semplici file di testo con indici o elenchi di file.",
+                whatIsThisText: "Questo strumento converte automaticamente i tuoi file di testo (.txt) in HTML, trovando tutti i riferimenti ai file multimediali e creando link cliccabili. <strong>Funziona 100% offline</strong> - tutta l'elaborazione avviene localmente sul tuo dispositivo. Nessun dato lascia mai il tuo computer. Perfetto per creare documenti web da semplici file di testo con indici o elenchi di file.",
                 step1: "Seleziona File TXT o HTML",
                 chooseFile: "📄 Scegli File TXT/HTML",
                 step1Hint: "Accetta file .txt (convertito in HTML) o .html (processato direttamente)",
@@ -448,7 +661,11 @@
                 downloadBtn: "⬇️ Scarica HTML",
                 previewTitle: "Anteprima HTML generato:",
                 selected: "Selezionato:",
-                filesFound: "file multimediali trovati:"
+                filesFound: "file multimediali trovati:",
+                installApp: "Installa App",
+                offlineMode: "Nessuna connessione necessaria - App funziona offline",
+                installSuccess: "App installata con successo!",
+                installError: "Installazione fallita"
             }
         };
 
@@ -863,6 +1080,75 @@
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
         });
+
+        // ============================================
+        // PWA Functionality
+        // ============================================
+
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((registration) => {
+                        console.log('ServiceWorker registered:', registration.scope);
+                    })
+                    .catch((error) => {
+                        console.log('ServiceWorker registration failed:', error);
+                    });
+            });
+        }
+
+        // Install prompt
+        let deferredPrompt;
+        const installContainer = document.getElementById('installContainer');
+        const installBtn = document.getElementById('installBtn');
+        const installClose = document.getElementById('installClose');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent the mini-infobar from appearing on mobile
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            // Show the install button
+            installContainer.classList.add('visible');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (!deferredPrompt) {
+                return;
+            }
+            // Show the install prompt
+            deferredPrompt.prompt();
+            // Wait for the user to respond to the prompt
+            const { outcome } = await deferredPrompt.userChoice;
+            console.log(`User response to the install prompt: ${outcome}`);
+            // Clear the deferredPrompt for reuse
+            deferredPrompt = null;
+            // Hide the install button
+            installContainer.classList.remove('visible');
+        });
+
+        installClose.addEventListener('click', (e) => {
+            e.stopPropagation();
+            installContainer.classList.remove('visible');
+        });
+
+        // Listen for app installed event
+        window.addEventListener('appinstalled', () => {
+            console.log('PWA installed successfully');
+            installContainer.classList.remove('visible');
+        });
+
+        // Check if app is already installed (standalone mode)
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
+            console.log('App is running in standalone mode');
+            // Hide install button if already installed
+            installContainer.style.display = 'none';
+        }
+
+        // Privacy/Offline badge is always visible since app works 100% offline
+        // No need to check online/offline status - the app doesn't require internet
+        console.log('[Media Linker] App works 100% offline - all processing is local');
     </script>
 </body>
 </html>
