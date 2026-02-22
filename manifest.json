@@ -2,7 +2,7 @@
   "name": "Media Linker - Offline",
   "short_name": "MediaLinker",
   "description": "Convert TXT to HTML with media links. 100% offline - all processing on your device. Privacy-focused, no data leaves your computer.",
-  "start_url": "/txt_to_html_linker_pwa.html",
+  "start_url": "/index.html",
   "display": "standalone",
   "background_color": "#667eea",
   "theme_color": "#667eea",
