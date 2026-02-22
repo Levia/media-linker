@@ -1,6 +1,6 @@
 const CACHE_NAME = 'media-linker-v2';
 const urlsToCache = [
-  './txt_to_html_linker_pwa.html',
+  './index.html',
   './manifest.json'
 ];
 
