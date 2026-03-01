@@ -1,7 +1,7 @@
 const CACHE_NAME = 'media-linker-v2';
 const urlsToCache = [
-  './index.html',
-  './manifest.json'
+  '/index.html',
+  '/manifest.json'
 ];
 
 // Install event - cache resources
