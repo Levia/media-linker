@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: media-linker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/ping
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
